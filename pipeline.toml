@@ -1,0 +1,53 @@
+# Demo configuration. Output folder comes from an environment variable, never from this file:
+#   PIPELINE_OUT=demo_out python orchestrator/run_pipeline.py
+[pipeline]
+root = "."
+state_dir = "state"
+log_dir = "logs"
+lock_max_hours = 6
+
+[[step]]
+name = "extract"
+cmd = ["python", "demo/extract.py"]
+env = { PIPELINE_OUT = "${PIPELINE_OUT}" }
+retries = 2
+retry_delay_s = 5
+timeout_s = 120
+
+[[step]]
+name = "transform"
+cmd = ["python", "demo/transform.py"]
+env = { PIPELINE_OUT = "${PIPELINE_OUT}" }
+depends_on = ["extract"]
+timeout_s = 120
+
+[[step]]
+name = "weekly_report"
+cmd = ["python", "demo/transform.py"]
+env = { PIPELINE_OUT = "${PIPELINE_OUT}" }
+depends_on = ["transform"]
+weekdays = ["mon"]            # only runs on Mondays; any other day it is reported as not_due
+
+[monitor]
+pipeline_max_age_hours = 26
+
+[[check]]
+name = "raw"
+path = "${PIPELINE_OUT}/raw.csv"
+max_age_hours = 26
+min_rows = 1000
+max_row_drop_pct = 20
+required_columns = ["id", "category", "amount"]
+
+[[check]]
+name = "summary"
+path = "${PIPELINE_OUT}/summary.csv"
+max_age_hours = 26
+min_rows = 4
+required_columns = ["category", "orders", "total", "average"]
+
+[[check]]
+name = "logs"
+type = "logs"
+glob = "logs/**/*.log"
+pattern = "Traceback|ERROR"
