@@ -4,3 +4,6 @@ state/
 logs/
 demo_out/
 *.pyc
+
+# Claude Code (configurações locais podem conter segredos)
+.claude/
