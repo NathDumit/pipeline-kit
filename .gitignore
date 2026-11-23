@@ -7,3 +7,12 @@ demo_out/
 
 # Claude Code (configurações locais podem conter segredos)
 .claude/
+
+# Segredos e ambientes locais
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.venv/
+venv/
